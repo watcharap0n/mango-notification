@@ -17,3 +17,4 @@ Pipfile
 yarn.lock
 node_modules
 .nuxt
+venv
