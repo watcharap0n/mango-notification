@@ -1,7 +1,7 @@
+from db import PyObjectId
 from typing import Optional
 from bson import ObjectId
 from pydantic import BaseModel, Field
-from db import PyObjectId
 
 
 class Card(BaseModel):
