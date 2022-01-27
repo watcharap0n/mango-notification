@@ -1,5 +1,5 @@
 from db import db
-from typing import  List
+from typing import List
 from starlette.responses import JSONResponse
 from models.card import Card, UpdateCard, TokenCard
 from models.send_card import SendCard, TokenSendCard, QueryCard
@@ -63,7 +63,6 @@ async def check_card_default(payload: SendCard):
     item_model["card"] = default_card["card"]
     item_model["description"] = default_card["description"]
     return item_model
-
 
 
 @router.get("/", tags=["LINE FLEX MESSAGE"], response_model=List[TokenCard])
