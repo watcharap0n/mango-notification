@@ -7,7 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 
 app = FastAPI(
-    openapi_url="/mango/openapi.json", redoc_url="/mango/redoc/", docs_url="/mango/docs"
+    openapi_url="/mango/openapi.json",
+    redoc_url="/mango/redoc/",
+    docs_url="/mango/docs"
 )
 script_dir = os.path.dirname(__file__)
 st_abs_file_path = os.path.join(script_dir, "static/")
