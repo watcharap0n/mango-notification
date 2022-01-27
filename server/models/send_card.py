@@ -1,7 +1,7 @@
-from typing import Optional, List
+from db import PyObjectId
+from typing import Optional
 from bson import ObjectId
 from pydantic import BaseModel, Field
-from db import PyObjectId
 
 
 class SendCard(BaseModel):
@@ -30,11 +30,9 @@ class TokenSendCard(SendCard):
 
     class Config:
         schema_extra = {
-            "example": {
-                "uid": "generate token uid",
-                "date": "12/01/2022",
-                "time": "12:00:00",
-            }
+            "uid": "generate token uid",
+            "date": "12/01/2022",
+            "time": "12:00:00",
         }
 
 
@@ -45,9 +43,7 @@ class QueryCard(TokenSendCard):
 
     class Config:
         schema_extra = {
-            "example": {
-                "name": "name card",
-                "card": "your card",
-                "description": "description card",
-            }
+            "name": "name card",
+            "card": "your card",
+            "description": "description card",
         }
