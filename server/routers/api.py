@@ -7,6 +7,8 @@ from models.card import Card, UpdateCard, TokenCard
 from models.send_card import SendCard, TokenSendCard, QueryCard
 from models.text import SendText, TokenSendText
 from modules.item_static import item_user
+from linebot import LineBotApi
+from linebot.exceptions import LineBotApiError
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.encoders import jsonable_encoder
 
@@ -16,7 +18,7 @@ collection = "api_card"
 
 
 async def check_card_duplicate(
-        flex: Card,
+        card: Card,
         current_user: User = Depends(get_current_active)
 ):
     items = await db.find(
@@ -24,14 +26,25 @@ async def check_card_duplicate(
     )
     items = list(items)
     for item in items:
-        if item["name"] == flex.name:
+        if item["name"] == card.name:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="item name duplicate"
             )
-    return flex
+    return card
 
 
-async def check_card_default(payload: SendCard, current_user: User = Depends(get_current_active)):
+async def check_access_token(payload: SendCard,
+                             current_user: User = Depends(get_current_active)):
+    try:
+        line_bot_api = LineBotApi(payload.access_token)
+        line_bot_api.get_bot_info()
+        return payload
+    except LineBotApiError as ex:
+        raise HTTPException(status_code=ex.status_code, detail=ex.message)
+
+
+async def check_card_default(payload: SendCard = Depends(check_access_token),
+                             current_user: User = Depends(get_current_active)):
     if not payload.default_card:
         items = await db.find(
             collection=collection, query={"uid": current_user.uid}
@@ -68,70 +81,116 @@ async def check_card_default(payload: SendCard, current_user: User = Depends(get
     return item_model
 
 
-@router.get("/", tags=["LINE FLEX MESSAGE"], response_model=List[TokenCard])
-async def get_flex(
+@router.get(
+    "/", tags=["Card"], response_model=List[TokenCard],
+)
+async def get_card(
         current_user: User = Depends(get_current_active)
 ):
-    print(current_user.dict())
+    """
+        APIs Document เหล่านี้เป็นการสร้าง flex message หรือ carousel เองได้ เพื่อนำส่งไปยัง /api/line/card ตัวแจ้งเตือนไลน์
+        สามารถเข้าไปสร้างได้ที่นี้ -> "https://developers.line.biz/flex-simulator/
+
+    :param current_user: \n
+    :return:
+    """
     items = await db.find(collection=collection, query={"uid": current_user.uid})
     items = list(items)
     return items
 
 
-@router.post("/create", response_model=TokenCard, tags=["LINE FLEX MESSAGE"])
-async def create_flex(
-        flex: Card = Depends(check_card_duplicate),
+@router.post(
+    "/create", response_model=TokenCard,
+    tags=["Card"],
+    response_description='Integrated model',
+)
+async def create_card(
+        card: Card = Depends(check_card_duplicate),
         current_user: User = Depends(get_current_active)
 ):
-    item_model = jsonable_encoder(flex)
+    """
+
+        APIs Document เหล่านี้เป็นการสร้าง flex message หรือ carousel เองได้ เพื่อนำส่งไปยัง /api/line/card ตัวแจ้งเตือนไลน์
+        สามารถเข้าไปสร้างได้ที่นี้ -> "https://developers.line.biz/flex-simulator/
+
+
+    :param card \n
+    :param current_user \n
+    :return:
+    """
+    item_model = jsonable_encoder(card)
     item_model = item_user(data=item_model, current_user=current_user)
     await db.insert_one(collection=collection, data=item_model)
     item_store = TokenCard(**item_model)
     return item_store
 
 
-@router.put("/query/update/{id}", response_model=TokenCard, tags=["LINE FLEX MESSAGE"])
-async def update_query_flex(
+@router.put("/query/update/{id}", response_model=TokenCard, tags=["Card"])
+async def update_query_card(
         id: str,
         payload: UpdateCard,
         current_user: User = Depends(get_current_active)
 ):
+    """
+
+        APIs Document เหล่านี้เป็นการสร้าง flex message หรือ carousel เองได้ เพื่อนำส่งไปยัง /api/line/card ตัวแจ้งเตือนไลน์
+        สามารถเข้าไปสร้างได้ที่นี้ -> "https://developers.line.biz/flex-simulator/
+
+    :param id: \n
+    :param payload: \n
+    :param current_user: \n
+    :return:
+    """
     data = jsonable_encoder(payload)
     query = {"_id": id}
     values = {"$set": data}
 
     if (await db.update_one(collection=collection, query=query, values=values)) == 0:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=f"Flex not found {id}"
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"card not found {id}"
         )
     return payload
 
 
-@router.delete("/query/delete/{id}", response_model=Card, tags=["LINE FLEX MESSAGE"])
-async def delete_query_flex(
+@router.delete("/query/delete/{id}", response_model=Card, tags=["Card"])
+async def delete_query_card(
         id: str,
         current_user: User = Depends(get_current_active)
 ):
+    """
+
+        APIs Document เหล่านี้เป็นการสร้าง flex message หรือ carousel เองได้ เพื่อนำส่งไปยัง /api/line/card ตัวแจ้งเตือนไลน์
+        สามารถเข้าไปสร้างได้ที่นี้ -> "https://developers.line.biz/flex-simulator/
+
+    :param id: \n
+    :param current_user: \n
+    :return:
+    """
     if (await db.delete_one(collection=collection, query={"_id": id})) == 0:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=f"Flex not found {id}"
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"card not found {id}"
         )
     return JSONResponse(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.post("/card", response_model=QueryCard, tags=["LINE SEND FLEX MESSAGE"])
-async def send_flex(
+@router.post("/card", response_model=QueryCard, tags=["Notify Card"])
+async def send_card(
         payload: QueryCard = Depends(check_card_default),
 ):
     return payload
 
 
-@router.post("/text", response_model=TokenSendText, tags=["LINE SEND TEXT"])
+@router.post("/text", response_model=TokenSendText, tags=["Notify Text"])
 async def send_text(
         payload: SendText,
         current_user: User = Depends(get_current_active)
 ):
-    item_model = jsonable_encoder(payload)
-    item_model = item_user(data=item_model)
-    item_store = TokenSendText(**item_model)
-    return item_store
+    try:
+        line_bot_api = LineBotApi(payload.access_token)
+        line_bot_api.get_bot_info()
+        item_model = jsonable_encoder(payload)
+        item_model = item_user(data=item_model)
+        item_store = TokenSendText(**item_model)
+        return item_store
+    except LineBotApiError as ex:
+        raise HTTPException(status_code=ex.status_code, detail=ex.message)
