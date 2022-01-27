@@ -12,7 +12,7 @@ from .object_str import CutId, PyObjectId
 
 
 client = os.getenv('MONGODB_URI', 'mongodb://localhost:27017')
-db = MongoDB(database_name='MangoNotification', uri=client)
+db = MongoDB(database_name='MangoBOT', uri=client)
 
 
 def generate_token(engine):
