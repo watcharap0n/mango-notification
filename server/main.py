@@ -1,10 +1,10 @@
 from routers import api
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI
 
 
 app = FastAPI()
 
 app.include_router(
     api.router,
-    prefix="/api/line/post/card"
+    prefix="/api/line"
 )
