@@ -1,3 +1,4 @@
+import json
 from db import db
 from typing import List
 from models.oauth2 import User
@@ -7,7 +8,7 @@ from models.card import Card, UpdateCard, TokenCard
 from models.send_card import SendCard, QueryCard
 from models.text import TextSend, TokenTextSend
 from modules.item_static import item_user
-from modules.get_flex_content import content_card
+from modules.get_flex_content import content_card, content_card_dynamic
 from linebot import LineBotApi
 from linebot.models import TextSendMessage
 from linebot.exceptions import LineBotApiError
@@ -64,16 +65,16 @@ async def check_card_default(payload: SendCard = Depends(check_access_token),
                 item_store = QueryCard(**item_model)
                 return item_store
 
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail=f"ID card not found"
-            )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=f"ID card not found"
+        )
     default_card = {
         'name': 'default card',
-        'card': 'json card',
-        'description': 'description card'
+        'card': 'default card',
+        'description': 'default description'
     }
     item_model["name"] = default_card["name"]
-    item_model["content"] = default_card["content"]
+    item_model["card"] = default_card["card"]
     item_model["description"] = default_card["description"]
     item_store = QueryCard(**item_model)
     return item_store
@@ -176,12 +177,28 @@ async def send_card(
         payload: QueryCard = Depends(check_card_default),
 ):
     try:
+        print(payload)
         if not payload.default_card:
             line_bot_api = LineBotApi(payload.access_token)
             line_bot_api.push_message(payload.user_id, content_card(contents=payload.content, name=payload.name))
             return payload
+        func, content = content_card_dynamic(
+            name=payload.name,
+            header=payload.config_default_card.header,
+            image=payload.config_default_card.image,
+            path_image=payload.config_default_card.path_image,
+            footer=payload.config_default_card.footer,
+            body_key=payload.config_default_card.body_key,
+            body_value=payload.config_default_card.body_value,
+            name_btn=payload.config_default_card.name_btn,
+            url_btn=payload.config_default_card.url_btn
+        )
+        content = json.dumps(content)
         line_bot_api = LineBotApi(payload.access_token)
-        line_bot_api.push_message(payload.user_id, content_card(contents=payload.content, name=payload.name))
+        line_bot_api.push_message(payload.user_id, func)
+        item_store = jsonable_encoder(payload)
+        item_store['content'] = content
+        return item_store
     except LineBotApiError as ex:
         raise HTTPException(status_code=ex.status_code, detail=ex.message)
 
@@ -194,8 +211,9 @@ async def send_text(
     try:
         line_bot_api = LineBotApi(payload.access_token)
         line_bot_api.get_bot_info()
+        line_bot_api.push_message(payload.user_id, TextSendMessage(text=payload.message))
         item_model = jsonable_encoder(payload)
-        item_model = item_user(data=item_model)
+        item_model = item_user(data=item_model, current_user=current_user)
         item_store = TokenTextSend(**item_model)
         return item_store
     except LineBotApiError as ex:
