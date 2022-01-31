@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 class Card(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     name: str
-    card: Optional[str] = None
+    content: str
     description: Optional[str] = None
 
     class Config:
@@ -15,7 +15,7 @@ class Card(BaseModel):
         schema_extra = {
             "example": {
                 "name": "name card",
-                "card": "input your json",
+                "content": '{"type": "text"}',
                 "description": "description card",
 
             }
@@ -37,7 +37,7 @@ class TokenCard(Card):
 
 class UpdateCard(BaseModel):
     name: str
-    card: Optional[str] = None
+    content: Optional[str] = None
     description: Optional[str] = None
 
     class Config:
@@ -45,7 +45,7 @@ class UpdateCard(BaseModel):
         schema_extra = {
             "example": {
                 "name": "name card",
-                "card": "card flex message or carousel",
+                "content": "card flex message or carousel",
                 "description": "description flex message or carousel",
             }
         }
