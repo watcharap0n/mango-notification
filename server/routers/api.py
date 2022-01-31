@@ -4,10 +4,12 @@ from models.oauth2 import User
 from oauth2 import get_current_active
 from starlette.responses import JSONResponse
 from models.card import Card, UpdateCard, TokenCard
-from models.send_card import SendCard, TokenSendCard, QueryCard
-from models.text import SendText, TokenSendText
+from models.send_card import SendCard, QueryCard
+from models.text import TextSend, TokenTextSend
 from modules.item_static import item_user
+from modules.get_flex_content import content_card
 from linebot import LineBotApi
+from linebot.models import TextSendMessage
 from linebot.exceptions import LineBotApiError
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.encoders import jsonable_encoder
@@ -45,6 +47,9 @@ async def check_access_token(payload: SendCard,
 
 async def check_card_default(payload: SendCard = Depends(check_access_token),
                              current_user: User = Depends(get_current_active)):
+    item_model = jsonable_encoder(payload)
+    item_model = item_user(data=item_model, current_user=current_user)
+
     if not payload.default_card:
         items = await db.find(
             collection=collection, query={"uid": current_user.uid}
@@ -53,32 +58,25 @@ async def check_card_default(payload: SendCard = Depends(check_access_token),
 
         for item in items:
             if item["_id"] == payload.id_card:
-                item_model = jsonable_encoder(payload)
-                item_model = item_user(data=item_model)
-                item_model = TokenSendCard(**item_model)
-                item_model = jsonable_encoder(item_model)
                 item_model["name"] = item["name"]
                 item_model["description"] = item["description"]
-                item_model["card"] = item["card"]
+                item_model["content"] = item["content"]
                 item_store = QueryCard(**item_model)
                 return item_store
 
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail=f"id card not found"
+                status_code=status.HTTP_400_BAD_REQUEST, detail=f"ID card not found"
             )
     default_card = {
         'name': 'default card',
         'card': 'json card',
         'description': 'description card'
     }
-    item_model = jsonable_encoder(payload)
-    item_model = item_user(data=item_model)
-    item_model = TokenSendCard(**item_model)
-    item_model = jsonable_encoder(item_model)
     item_model["name"] = default_card["name"]
-    item_model["card"] = default_card["card"]
+    item_model["content"] = default_card["content"]
     item_model["description"] = default_card["description"]
-    return item_model
+    item_store = QueryCard(**item_model)
+    return item_store
 
 
 @router.get(
@@ -125,7 +123,7 @@ async def create_card(
     return item_store
 
 
-@router.put("/query/update/{id}", response_model=TokenCard, tags=["Card"])
+@router.put("/query/update/{id}", response_model=UpdateCard, tags=["Card"])
 async def update_query_card(
         id: str,
         payload: UpdateCard,
@@ -177,12 +175,20 @@ async def delete_query_card(
 async def send_card(
         payload: QueryCard = Depends(check_card_default),
 ):
-    return payload
+    try:
+        if not payload.default_card:
+            line_bot_api = LineBotApi(payload.access_token)
+            line_bot_api.push_message(payload.user_id, content_card(contents=payload.content, name=payload.name))
+            return payload
+        line_bot_api = LineBotApi(payload.access_token)
+        line_bot_api.push_message(payload.user_id, content_card(contents=payload.content, name=payload.name))
+    except LineBotApiError as ex:
+        raise HTTPException(status_code=ex.status_code, detail=ex.message)
 
 
-@router.post("/text", response_model=TokenSendText, tags=["Notify Text"])
+@router.post("/text", response_model=TokenTextSend, tags=["Notify Text"])
 async def send_text(
-        payload: SendText,
+        payload: TextSend,
         current_user: User = Depends(get_current_active)
 ):
     try:
@@ -190,7 +196,7 @@ async def send_text(
         line_bot_api.get_bot_info()
         item_model = jsonable_encoder(payload)
         item_model = item_user(data=item_model)
-        item_store = TokenSendText(**item_model)
+        item_store = TokenTextSend(**item_model)
         return item_store
     except LineBotApiError as ex:
         raise HTTPException(status_code=ex.status_code, detail=ex.message)
