@@ -55,7 +55,7 @@ async def authentication_signin(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail='Email or password invalid'
         )
-    email_verify = auth.get_user_by_email(form_data.username)
+    check_verify = auth.get_user_by_email(form_data.username)
     user = await db.find_one(collection=collection, query={'email': form_data.username})
     if not user:
         raise HTTPException(
@@ -65,8 +65,8 @@ async def authentication_signin(
                 'email': 'wera.watcharapon@gmail'
             }
         )
-    if not email_verify.email_verified:
-        pb.send_email_verification(sign_in['idToken'])
+    if not check_verify.email_verified:
+        pb.send_email_verification(sign_in.get("idToken"))
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail='Email not verification!'

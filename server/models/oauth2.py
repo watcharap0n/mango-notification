@@ -6,15 +6,15 @@ from pydantic import BaseModel, Field, constr
 
 class User(BaseModel):
     iss: str
-    name: str
-    picture: str
-    aud: str
-    auth_time: int
-    user_id: str
-    sub: str
-    iat: int
-    exp: int
-    email: str
+    name: Optional[str] = None
+    picture: Optional[str] = None
+    aud: Optional[str] = None
+    auth_time: Optional[int] = None
+    user_id: Optional[str] = None
+    sub: Optional[str] = None
+    iat: Optional[int] = None
+    exp: Optional[int] = None
+    email: Optional[str] = None
     email_verified: Optional[bool] = False
     firebase: Optional[dict] = {}
     uid: str
