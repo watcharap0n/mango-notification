@@ -1,7 +1,32 @@
 from db import PyObjectId
-from typing import Optional, Dict
+from typing import Optional
 from bson import ObjectId
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl
+
+
+class DefaultCard(BaseModel):
+    header: Optional[str] = None
+    image: Optional[bool] = False
+    path_image: Optional[HttpUrl] = None
+    footer: Optional[bool] = False
+    body_key: Optional[list] = ['input your key flex msg']
+    body_value: Optional[list] = ['input your value flex msg'],
+    name_btn: Optional[str] = 'URL',
+    url_btn: Optional[str] = 'https://linecorp.com'
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "header": "header card",
+                "image": False,
+                "path_image": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/01_1_cafe.png",
+                "footer": False,
+                "body_key": ['name', 'company'],
+                "body_value": ['watcharapon', 'mango consultant'],
+                "name_btn": "URL",
+                "url_btn": "https://mangoserverbot.herokuapp.com"
+            }
+        }
 
 
 class SendCard(BaseModel):
@@ -9,6 +34,16 @@ class SendCard(BaseModel):
     access_token: str
     user_id: str
     default_card: Optional[bool] = False
+    config_default_card: Optional[DefaultCard] = {
+        "header": "header card",
+        "image": False,
+        "path_image": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/01_1_cafe.png",
+        "footer": False,
+        "body_key": ['name', 'company'],
+        "body_value": ['watcharapon', 'mango consultant'],
+        "name_btn": "URL",
+        "url_btn": "https://mangoserverbot.herokuapp.com"
+    }
     id_card: Optional[str] = None
 
     class Config:
