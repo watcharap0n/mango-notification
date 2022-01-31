@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    depends_on:
+      - 'redis'
+    image: kaneai/mango-server-bot
+    container_name: container-server-bot
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./server:/server
+
