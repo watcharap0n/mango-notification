@@ -12,7 +12,7 @@ class DefaultCard(BaseModel):
     body_key: Optional[list] = ['input your key flex msg']
     body_value: Optional[list] = ['input your value flex msg'],
     name_btn: Optional[str] = 'URL',
-    url_btn: Optional[str] = 'https://linecorp.com'
+    url_btn: Optional[HttpUrl] = 'https://linecorp.com'
 
     class Config:
         schema_extra = {
