@@ -177,7 +177,6 @@ async def send_card(
         payload: QueryCard = Depends(check_card_default),
 ):
     try:
-        print(payload)
         if not payload.default_card:
             line_bot_api = LineBotApi(payload.access_token)
             line_bot_api.push_message(payload.user_id, content_card(contents=payload.content, name=payload.name))
