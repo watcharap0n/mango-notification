@@ -4,7 +4,7 @@ from datetime import datetime
 from uuid import uuid4
 
 
-def item_user(data: dict, url: Optional[bool] = False):
+def item_user(data: dict, current_user, url: Optional[bool] = False):
     """
 
     :param change_id:
@@ -15,7 +15,7 @@ def item_user(data: dict, url: Optional[bool] = False):
 
     try:
         _d = datetime.now()
-        data["uid"] = uuid4().hex
+        data['uid'] = current_user.uid
         data["date"] = _d.strftime("%d/%m/%y")
         data["time"] = _d.strftime("%H:%M:%S")
         if url:
