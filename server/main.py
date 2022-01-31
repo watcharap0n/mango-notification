@@ -1,6 +1,6 @@
 import os
 import oauth2
-from routers import api
+from routers import api, optional
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -40,6 +40,11 @@ app.include_router(
 app.include_router(
     api.router,
     prefix="/api/line"
+)
+
+app.include_router(
+    optional.router,
+    prefix='/api/optional'
 )
 
 description = """
