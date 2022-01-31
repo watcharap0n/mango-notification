@@ -1,5 +1,5 @@
 from db import PyObjectId
-from typing import Optional
+from typing import Optional, Dict
 from bson import ObjectId
 from pydantic import BaseModel, Field
 
@@ -17,33 +17,26 @@ class SendCard(BaseModel):
             "example": {
                 "access_token": "access token long live",
                 "user_id": "line name",
-                "default_card": "False",
+                "default_card": False,
                 "id_card": "id card",
             }
         }
 
 
-class TokenSendCard(SendCard):
+class QueryCard(SendCard):
     uid: Optional[str] = None
     date: Optional[str] = None
     time: Optional[str] = None
+    name: str
+    content: Optional[str] = None
+    description: Optional[str] = None
 
     class Config:
         schema_extra = {
             "uid": "generate token uid",
             "date": "12/01/2022",
             "time": "12:00:00",
-        }
-
-
-class QueryCard(TokenSendCard):
-    name: str
-    card: Optional[str] = None
-    description: Optional[str] = None
-
-    class Config:
-        schema_extra = {
             "name": "name card",
-            "card": "your card",
+            "content": "your card",
             "description": "description card",
         }
