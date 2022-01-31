@@ -4,7 +4,7 @@ from bson import ObjectId
 from pydantic import BaseModel, Field
 
 
-class SendText(BaseModel):
+class TextSend(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     access_token: str
     user_id: str
@@ -21,7 +21,7 @@ class SendText(BaseModel):
         }
 
 
-class TokenSendText(SendText):
+class TokenTextSend(TextSend):
     uid: Optional[str] = None
     date: Optional[str] = None
     time: Optional[str] = None
