@@ -31,12 +31,6 @@ app.add_middleware(
     allow_headers=["/api/*"],
 )
 
-
-@app.get("/", tags=["HomePage"])
-async def homepage():
-    return "Welcome to the Server BOT!"
-
-
 app.include_router(
     oauth2.router,
     prefix='/api/authentication',
