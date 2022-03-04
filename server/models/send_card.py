@@ -14,36 +14,13 @@ class DefaultCard(BaseModel):
     name_btn: Optional[str] = 'URL',
     url_btn: Optional[HttpUrl] = 'https://linecorp.com'
 
-    class Config:
-        schema_extra = {
-            "example": {
-                "header": "header card",
-                "image": False,
-                "path_image": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/01_1_cafe.png",
-                "footer": False,
-                "body_key": ['name', 'company'],
-                "body_value": ['watcharapon', 'mango consultant'],
-                "name_btn": "URL",
-                "url_btn": "https://mangoserverbot.herokuapp.com"
-            }
-        }
-
 
 class SendCard(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     access_token: str
     user_id: str
     default_card: Optional[bool] = False
-    config_default_card: Optional[DefaultCard] = {
-        "header": "header card",
-        "image": False,
-        "path_image": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/01_1_cafe.png",
-        "footer": False,
-        "body_key": ['name', 'company'],
-        "body_value": ['watcharapon', 'mango consultant'],
-        "name_btn": "URL",
-        "url_btn": "https://mangoserverbot.herokuapp.com"
-    }
+    config_default_card: Optional[DefaultCard] = None
     id_card: Optional[str] = None
 
     class Config:
@@ -53,6 +30,16 @@ class SendCard(BaseModel):
                 "access_token": "access token long live",
                 "user_id": "line name",
                 "default_card": False,
+                "config_default_card": {
+                    "header": "header card",
+                    "image": False,
+                    "path_image": "https://scdn.line-apps.com/n/channel_devcenter/img/fx/01_1_cafe.png",
+                    "footer": False,
+                    "body_key": ['name', 'company'],
+                    "body_value": ['watcharapon', 'mango consultant'],
+                    "name_btn": "URL",
+                    "url_btn": "https://mangoserverbot.herokuapp.com"
+                },
                 "id_card": "id card",
             }
         }

@@ -4,39 +4,27 @@ from typing import Optional, Dict
 from pydantic import BaseModel, Field, constr
 
 
-class User(BaseModel):
-    iss: str
-    name: Optional[str] = None
-    picture: Optional[str] = None
-    aud: Optional[str] = None
-    auth_time: Optional[int] = None
-    user_id: Optional[str] = None
-    sub: Optional[str] = None
-    iat: Optional[int] = None
-    exp: Optional[int] = None
-    email: Optional[str] = None
-    email_verified: Optional[bool] = False
-    firebase: Optional[dict] = {}
+class Permission(BaseModel):
     uid: str
+    username: str
+    role: Optional[str] = None
+    email: str
+    hashed_password: str
+    full_name: Optional[str] = None
+    img_path: Optional[str] = None
+    date: str
+    time: str
+    disabled: Optional[bool] = None
+    _data: Optional[dict] = None
+
+
+class User(BaseModel):
+    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    data: Optional[Permission] = None
 
     class Config:
-        schema_extra = {
-            "example": {
-                "iss": "https://session.firebase.google.com/example",
-                "name": "kaneAI",
-                "picture": "https://example.com/static/uploads/example.jpg",
-                "aud": "auth-example",
-                "auth_time": 1643273200,
-                "user_id": "user_id_example",
-                "sub": "sub_example",
-                "iat": 1643273201,
-                "exp": 1643275001,
-                "email": "wera.watcharapon@gmail.com",
-                "email_verified": True,
-                "firebase": {},
-                "uid": "example_uid"
-            }
-        }
+        json_encoders = {ObjectId: str}
+        schema_extra = {"data": {}}
 
 
 class Register(BaseModel):
