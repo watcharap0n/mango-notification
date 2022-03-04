@@ -11,7 +11,7 @@ from .database import MongoDB
 from .object_str import CutId, PyObjectId
 
 
-client = os.environ['MONGODB_URI']
+client = os.getenv('MONGODB_URI', 'mongodb://localhost:27017')
 db = MongoDB(database_name='MangoBOT', uri=client)
 
 
